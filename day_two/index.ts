@@ -20,6 +20,7 @@ fs.readFile("input.txt", "utf-8", (err, data) => {
 
 function solveGame(game: string): number {
   const gameId = game.match(/^(.*?)(\d+).*:/)?.at(2);
+  const smallestNumbers = new Map();
   if (!gameId) {
     return 0;
   }
@@ -30,16 +31,20 @@ function solveGame(game: string): number {
     const dices = pull.split(",");
 
     for (const dice of dices) {
-      for (const [color, limit] of CUBES_IN_BAG) {
+      for (const [color, _] of CUBES_IN_BAG) {
         if (dice.includes(color)) {
           const amount = dice.match(/\d+/);
           const parsed = parseInt(amount?.[0]!);
-          if (limit < parsed) {
-            return 0;
+          if (smallestNumbers.has(color)) {
+            if (smallestNumbers.get(color) < parsed) {
+              smallestNumbers.set(color, parsed);
+            }
+          } else {
+            smallestNumbers.set(color, parsed);
           }
         }
       }
     }
   }
-  return parseInt(gameId!);
+  return [...smallestNumbers.values()].reduce((acc, val) => acc * val);
 }
