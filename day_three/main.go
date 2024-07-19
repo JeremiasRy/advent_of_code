@@ -14,15 +14,19 @@ var (
 )
 
 type MachinePart struct {
-	row    int
-	col    int
-	value  int
-	length int
+	positions []Coordinate
+	value     int
 }
 
 type Coordinate struct {
 	row int
 	col int
+}
+
+type Symbol struct {
+	ch                   string
+	position             Coordinate
+	machinePartsAdjacent []MachinePart
 }
 
 func main() {
@@ -41,51 +45,63 @@ func main() {
 
 	row := 0
 	var machineParts []MachinePart
-	var symbolCoordinates []Coordinate
+	var symbols []Symbol
 	result := 0
 	for scanner.Scan() {
 		line := scanner.Text()
-		numbers := Numbers.FindAllStringIndex(line, -1)
-		symbols := Symbols.FindAllIndex([]byte(line), -1)
+		numbersIdx := Numbers.FindAllStringIndex(line, -1)
+		symbolsIdx := Symbols.FindAllIndex([]byte(line), -1)
 
-		for _, value := range numbers {
+		for _, value := range numbersIdx {
 			machinePartValue, err := strconv.Atoi(line[value[0]:value[1]])
 			if err != nil {
 				log.Fatal("Something went terriby wrong :(")
 			}
 
+			var machinePartPositions []Coordinate
+			for i := 0; i < len(line[value[0]:value[1]]); i++ {
+				for iCol := -1; iCol <= 1; iCol++ {
+					for iRow := -1; iRow <= 1; iRow++ {
+						machinePartPositions = append(machinePartPositions, Coordinate{row: row + iRow, col: i + value[0] + iCol})
+					}
+				}
+			}
 			machineParts = append(machineParts, MachinePart{
-				row:    row,
-				value:  machinePartValue,
-				col:    value[0],
-				length: len(line[value[0]:value[1]]),
+				positions: machinePartPositions,
+				value:     machinePartValue,
 			})
 		}
 
-		for _, value := range symbols {
-			symbolCoordinates = append(symbolCoordinates, Coordinate{col: value[0], row: row})
+		for _, value := range symbolsIdx {
+			symbol := Symbol{position: Coordinate{col: value[0], row: row}, ch: string(line[value[0]])}
+			symbols = append(symbols, symbol)
 		}
 		row++
 	}
-
+	found := false
 	for _, part := range machineParts {
-		result += machinePartCheck(part, symbolCoordinates)
-	}
-	println("Value: ", result)
-}
-
-func machinePartCheck(part MachinePart, symbolCoordinates []Coordinate) int {
-	for i := 0; i < part.length; i++ {
-		for iCol := -1; iCol <= 1; iCol++ {
-			for iRow := -1; iRow <= 1; iRow++ {
-				coordinate := Coordinate{col: part.col + i + iCol, row: part.row + iRow}
-				if arrIncludes(coordinate, symbolCoordinates) {
-					return part.value
+		found = false
+		for j := range symbols {
+			if found {
+				continue
+			}
+			for _, partPosition := range part.positions {
+				if symbols[j].position.col == partPosition.col && symbols[j].position.row == partPosition.row && !found {
+					symbols[j].machinePartsAdjacent = append(symbols[j].machinePartsAdjacent, part)
+					found = true
 				}
 			}
 		}
 	}
-	return 0
+
+	for _, symbol := range symbols {
+		if len(symbol.machinePartsAdjacent) == 2 && symbol.ch == "*" {
+			result += symbol.machinePartsAdjacent[0].value * symbol.machinePartsAdjacent[1].value
+			continue
+		}
+	}
+
+	println("Result: ", result)
 }
 
 func arrRange(start int, len int) []int {
@@ -98,13 +114,4 @@ func arrRange(start int, len int) []int {
 	}
 
 	return arr
-}
-
-func arrIncludes(val Coordinate, from []Coordinate) bool {
-	for _, valFrom := range from {
-		if val.col == valFrom.col && val.row == valFrom.row {
-			return true
-		}
-	}
-	return false
 }
