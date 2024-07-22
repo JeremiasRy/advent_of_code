@@ -1,9 +1,8 @@
-﻿using System.Security.Cryptography;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using DayFive;
 
 var commandLineArgs = Environment.GetCommandLineArgs();
-int[] seeds = Array.Empty<int>();
+double[] seeds = Array.Empty<double>();
 Almanac currentlyParsing = Almanac.None;
 Dictionary<Almanac, AlmanacMap> almanacs = new();
 if (commandLineArgs.Length != 2) 
@@ -21,16 +20,16 @@ try
             var line = sr.ReadLine();
             if (line != null) 
             {
-                if (line.Length < 1) 
-                {
-                    continue;
-                }
                 if (firstRow) 
                 {
                     
                     var seedsStr = line.Split(":")[1];
-                    seeds = DigitRegex().Matches(seedsStr).Select(match => int.Parse(match.Value)).ToArray();
+                    seeds = DigitRegex().Matches(seedsStr).Select(match => double.Parse(match.Value)).ToArray();
                     firstRow = false;
+                    continue;
+                }
+                if (line.Length < 1) 
+                {
                     continue;
                 }
                 if (line.Contains("map:")) 
@@ -44,17 +43,24 @@ try
                     Console.WriteLine("You shouldn't reach this part before setting a Almanac. Check input.");
                     return;
                 }
-                int[] mapValues = DigitRegex().Matches(line).Select(match => int.Parse(match.Value)).ToArray();
+                double[] mapValues = DigitRegex().Matches(line).Select(match => double.Parse(match.Value)).ToArray();
                 almanacs[currentlyParsing].EnterMapEntries(mapValues[0], mapValues[1], mapValues[2]);
             } 
         }
     };
-    foreach (int seed in seeds) {
-        var destination = almanacs[Almanac.SeedToSoil].GetDestination(seed);
-        Console.WriteLine("seed: {0}, soil: {1}", seed, destination);
+    double lowest = double.MaxValue;
+    foreach (double seed in seeds) 
+    {
+        var destination = almanacs[Almanac.HumidityToLocation].GetDestination(almanacs[Almanac.TemperatureToHumidity].GetDestination(almanacs[Almanac.LightToTemperature].GetDestination(almanacs[Almanac.WaterToLight].GetDestination(almanacs[Almanac.FertilizerToWater].GetDestination(almanacs[Almanac.SoilToFertilizer].GetDestination(almanacs[Almanac.SeedToSoil].GetDestination(seed)))))));
+        if (lowest > destination) 
+        {
+            lowest = destination;
+        }
     }
-} catch 
+    Console.WriteLine("Lowest: {0}", lowest);
+} catch (Exception e)
 {
+    Console.WriteLine(e);
     Console.WriteLine("can't open {0}", commandLineArgs[1]);
 }
 
@@ -65,14 +71,14 @@ partial class Program
 
     enum Almanac
     {
-        SeedToSoil,
-        SoilToFertilizer,
-        FertilizerToWater,
-        WaterToLight,
-        LightToTemperature,
-        TemperatureToHumidity,
-        HumidityToLocation,
-        None
+        SeedToSoil  = 1,
+        SoilToFertilizer = 2,
+        FertilizerToWater = 3,
+        WaterToLight = 4,
+        LightToTemperature = 5,
+        TemperatureToHumidity = 6,
+        HumidityToLocation = 7,
+        None = 99
     }
 
     static Almanac ParseLineToAlmanac(string line) 

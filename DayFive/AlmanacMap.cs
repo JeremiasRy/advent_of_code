@@ -1,26 +1,28 @@
 namespace DayFive;
 public class AlmanacMap 
 {
-    private readonly Dictionary<int, int> _map =  new();
+    private readonly Dictionary<double, double> _map =  new();
     private readonly AlmanacMap _next;
-    public int GetDestination(int source) 
+    public double GetDestination(double source) 
     {
-        if (_map.TryGetValue(source, out int destination)) 
+        if (_map.TryGetValue(source, out double destination)) 
         {
             return destination;
         }
         return source;
     } 
 
-    public void EnterMapEntries(int destination, int source, int range)
+    public void EnterMapEntries(double destination, double source, double range)
     {
-        for (int i = 0; i <= range; i++) 
+        Console.WriteLine("Mapping entries, range: {0}", range);
+        for (double i = 0; i <= range; i++) 
         {
-            int key = source + i;
-            int value = destination + i;
+            double key = source + i;
+            double value = destination + i;
 
             _map.Remove(key);
             _map.Add(key, value);
         }
+        Console.WriteLine("Mapped entries");
     }
 }
