@@ -2,8 +2,9 @@
 using DayFive;
 
 var commandLineArgs = Environment.GetCommandLineArgs();
-double[] seeds = Array.Empty<double>();
+double[][] seeds = Array.Empty<double[]>();
 AlmanacMap map = new();
+object lockObj = new();
 if (commandLineArgs.Length != 2) 
 {
     Console.WriteLine("Usage: dotnet run input.txt");
@@ -23,7 +24,15 @@ try
                 if (firstRow) 
                 {
                     var seedsStr = line.Split(":")[1];
-                    seeds = DigitRegex().Matches(seedsStr).Select(match => double.Parse(match.Value)).ToArray();
+                    var seedsDigits = DigitRegex().Matches(seedsStr).Select(match => double.Parse(match.Value)).ToArray();
+                    seeds = new double[seedsDigits.Length / 2][];
+                    var outerIndex = 0;
+                    for (int i = 0; i < seedsDigits.Length; i += 2) 
+                    {
+                        seeds[outerIndex] = new double[2];
+                        Array.Copy(seedsDigits[i..], seeds[outerIndex], 2);
+                        outerIndex++;
+                    }
                     firstRow = false;
                     continue;
                 }
@@ -47,14 +56,33 @@ try
         }
     };
     double lowest = double.MaxValue;
-    foreach (double seed in seeds) 
-    {
-        var destination = map.GetDestination(seed);
-        if (destination < lowest) 
+    int threadCount = 1;
+
+    Parallel.ForEach(seeds, seedRange  => {
+        string loopId = "";
+        lock (lockObj) 
         {
-            lowest = destination;
+            Console.WriteLine($"Loop {threadCount}. \nStarting parsing...");
+            loopId = $"loop {threadCount}";
+            threadCount++;
+        }   
+        
+        for (double seed = seedRange[0]; seed < seedRange[0] + seedRange[1]; seed++) 
+        {
+            var destination = map.GetDestination(seed);
+            if (destination < lowest) 
+            {
+                lock (lockObj) 
+                {
+                    lowest = destination;
+                    Console.WriteLine("New lowest from {1}! {0}", lowest, loopId);
+                }
+            }
         }
-    }
+        Console.WriteLine("Finished seedrange");
+        Console.WriteLine();
+    }); 
+
     Console.WriteLine("Lowest: {0}", lowest);
 } catch (Exception e)
 {

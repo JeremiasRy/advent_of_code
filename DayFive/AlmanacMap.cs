@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace DayFive;
 
 public class AlmanacMap 
@@ -13,7 +11,6 @@ public class AlmanacMap
             {
                 return destination;
             }
-
         }
         return source;
     }
