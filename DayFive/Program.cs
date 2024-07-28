@@ -69,17 +69,12 @@ try
         
         for (double seed = seedRange[0]; seed < seedRange[0] + seedRange[1]; seed++) 
         {
-            var destination = map.GetDestination(seed);
-            if (destination < lowest) 
+            lock (lockObj) 
             {
-                lock (lockObj) 
-                {
-                    lowest = destination;
-                    Console.WriteLine("New lowest from {1}! {0}", lowest, loopId);
-                }
+                lowest = Math.Min(lowest, map.GetDestination(seed));
             }
         }
-        Console.WriteLine("Finished seedrange");
+        Console.WriteLine("Finished {0}.", loopId);
         Console.WriteLine();
     }); 
 
