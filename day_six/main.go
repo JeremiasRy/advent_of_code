@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 type Race struct {
@@ -13,7 +14,7 @@ type Race struct {
 	record int
 }
 
-var numbers = regexp.MustCompile(`\d+`)
+var numbers = regexp.MustCompile(`\d+.*`)
 
 func main() {
 	if len(os.Args) != 2 {
@@ -37,13 +38,13 @@ func main() {
 	raceRecordsstr := numbers.FindAllString(scanner.Text(), -1)
 
 	for idx := range raceTimesStr {
-		raceTime, err := strconv.Atoi(raceTimesStr[idx])
+		raceTime, err := strconv.Atoi(strings.ReplaceAll(raceTimesStr[idx], " ", ""))
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		raceRecord, err := strconv.Atoi(raceRecordsstr[idx])
+		raceRecord, err := strconv.Atoi(strings.ReplaceAll(raceRecordsstr[idx], " ", ""))
 
 		if err != nil {
 			log.Fatal(err)
