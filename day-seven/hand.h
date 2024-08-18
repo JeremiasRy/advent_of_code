@@ -1,14 +1,13 @@
 #ifndef HAND_H
 #define HAND_H
 
-#include "card.h"
 #include <string>
+#include <map>
 
 class Hand
 {
 
 private:
-    std::array<Card, 5> hand;
     int bid;
     std::array<std::string, 2> splitInputStr(const std::string &str);
 
@@ -23,9 +22,14 @@ public:
         FOUR_OF_A_KIND,
         FIVE_OF_A_KIND
     };
+
+    static const std::map<char, int> charToValueMap;
+
+    Hand(const std::string &str);
+
+    std::string hand;
     Hand::Type type;
     std::array<int, 5> values;
-    Hand(const std::string &str);
     int GetBid();
     friend bool operator<(const Hand &a, const Hand &b);
 };

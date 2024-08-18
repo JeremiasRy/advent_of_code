@@ -26,9 +26,10 @@ int main(int argc, char *argv[])
     int result = 0;
     for (auto &&hand : hands)
     {
+        std::cout << "Rank: " << rank << " Card: " << hand.hand << " type: " << hand.type << "\n";
         result += hand.GetBid() * rank;
         rank++;
     };
-    std::cout << "Result: " << result;
+    std::cout << "Result: " << result << "\n";
     return 0;
 };

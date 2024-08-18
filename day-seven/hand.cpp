@@ -3,19 +3,37 @@
 #include <iostream>
 #include <set>
 
+const std::map<char, int> Hand::charToValueMap = {
+    {'2', 0},
+    {'3', 1},
+    {'4', 2},
+    {'5', 3},
+    {'6', 4},
+    {'7', 5},
+    {'8', 6},
+    {'9', 7},
+    {'T', 8},
+    {'J', -1},
+    {'Q', 10},
+    {'K', 11},
+    {'A', 12}};
+
 Hand::Hand(const std::string &str)
 {
     std::array<std::string, 2> handBidVec = splitInputStr(str);
-    for (size_t i = 0; i < handBidVec[0].length(); i++)
-    {
-        hand[i].InitValue(handBidVec[0][i]);
-    }
     std::string handStr = handBidVec[0];
     bid = stoi(handBidVec[1]);
     type = Type::HIGH_CARD;
+    hand = str;
     std::map<char, int> distinctCards;
+    bool hasJoker = false;
+
     for (char c : handStr)
     {
+        if (!hasJoker)
+        {
+            hasJoker = c == 'J';
+        }
         distinctCards[c]++;
     }
 
@@ -46,6 +64,7 @@ Hand::Hand(const std::string &str)
             {
                 if (type == Type::ONE_PAIR)
                 {
+
                     type = Type::FULL_HOUSE;
                     break;
                 }
@@ -59,10 +78,69 @@ Hand::Hand(const std::string &str)
             }
         }
     }
-
-    for (size_t i = 0; i < hand.size(); i++)
+    for (size_t i = 0; i < handStr.size(); i++)
     {
-        values[i] = hand[i].GetValue();
+        values[i] = charToValueMap.at(handStr[i]);
+    }
+
+    if (hasJoker)
+    {
+        int jokers = distinctCards.at('J');
+        if (jokers == 4)
+        {
+            type = Type::FIVE_OF_A_KIND;
+        }
+        else if (jokers == 3)
+        {
+            switch (type)
+            {
+            case Type::THREE_OF_A_KIND:
+                type = Type::FOUR_OF_A_KIND;
+                break;
+            case Type::FULL_HOUSE:
+                type = Type::FIVE_OF_A_KIND;
+            }
+        }
+        else if (jokers == 2)
+        {
+            switch (type)
+            {
+            case Type::HIGH_CARD:
+                type = Type::THREE_OF_A_KIND;
+                break;
+            case Type::ONE_PAIR:
+                type = Type::THREE_OF_A_KIND;
+                break;
+            case Type::TWO_PAIR:
+                type = Type::FOUR_OF_A_KIND;
+                break;
+            case Type::THREE_OF_A_KIND:
+            case Type::FULL_HOUSE:
+                type = Type::FIVE_OF_A_KIND;
+                break;
+            }
+        }
+        else if (jokers == 1)
+        {
+            switch (type)
+            {
+            case Type::HIGH_CARD:
+                type = Type::ONE_PAIR;
+                break;
+            case Type::ONE_PAIR:
+                type = Type::THREE_OF_A_KIND;
+                break;
+            case Type::TWO_PAIR:
+                type = Type::FULL_HOUSE;
+                break;
+            case Type::THREE_OF_A_KIND:
+                type = Type::FOUR_OF_A_KIND;
+                break;
+            case Type::FOUR_OF_A_KIND:
+                type = Type::FIVE_OF_A_KIND;
+                break;
+            }
+        }
     }
 }
 
