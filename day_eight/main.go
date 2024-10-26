@@ -51,6 +51,7 @@ func main() {
 		if len(str) == 0 {
 			continue
 		}
+
 		entry := MapEntry{left: str[7:10], right: str[12:15]}
 		m[str[0:3]] = entry
 	}
