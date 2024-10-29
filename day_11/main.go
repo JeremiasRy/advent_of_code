@@ -11,6 +11,8 @@ type SpaceNode struct {
 	row    int
 }
 
+const EXPANSION int = 1000000 - 1
+
 func main() {
 	if len(os.Args) != 2 {
 		println("Usage: go run main.go <input>")
@@ -38,12 +40,11 @@ func main() {
 
 	i := 0
 	result := 0
-	pairs := 0
+	totalExpansion := 0
 	for i < len(space)-1 {
 		for _, node := range space[i+1:] {
-			pairs++
-			rowExpansion := expansionNodesBetween(space[i], node, expansionRows, "row")
-			colExpansion := expansionNodesBetween(space[i], node, expansionCols, "column")
+			totalExpansion += expansionNodesBetween(space[i], node, expansionRows, "row")
+			totalExpansion += expansionNodesBetween(space[i], node, expansionCols, "column")
 
 			colDiff := 0
 			if node.col < space[i].col {
@@ -58,13 +59,12 @@ func main() {
 			} else {
 				rowDiff = node.row - space[i].row
 			}
-
-			distance := rowExpansion + colExpansion + colDiff + rowDiff
+			distance := colDiff + rowDiff
 			result += distance
 		}
 		i++
 	}
-	println(result)
+	println(result + totalExpansion*EXPANSION)
 }
 
 func expansionNodesBetween(node_1 SpaceNode, node_2 SpaceNode, expansion []int, t string) int {
@@ -112,7 +112,7 @@ func expansionOfSpace(input string) ([]int, []int) {
 
 		i := 0
 		expansionCol := true
-		for i < len(rows)-1 && row < len(line) {
+		for i < len(line) && row < len(line) {
 			if rows[i][row] == '#' {
 				expansionCol = false
 				break
